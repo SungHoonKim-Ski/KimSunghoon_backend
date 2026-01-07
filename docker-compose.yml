@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: wirebarley-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wirebarley
+      MYSQL_USER: wirebarley
+      MYSQL_PASSWORD: wirebarley1234
+      MYSQL_ROOT_PASSWORD: wirebarley234
+      TZ: Asia/Seoul
+    ports:
+      - "3307:3307"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot1234" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/wirebarley?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: wirebarley
+      SPRING_DATASOURCE_PASSWORD: wirebarley1234
+      TZ: Asia/Seoul
+    ports:
+      - "6060:6060"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:6060/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  mysql-data:

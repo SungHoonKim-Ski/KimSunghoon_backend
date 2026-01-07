@@ -1,0 +1,66 @@
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+### Maven / Gradle ###
+target/
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+### Spring Boot ###
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+### Eclipse / STS ###
+.classpath
+.project
+.settings/
+.springBeans
+.apt_generated/
+.factorypath
+
+### VS Code ###
+.vscode/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Docker ###
+docker-compose.override.yml
+*.env
+.env
+.env.*
+!.env.example
+
+### Test / coverage ###
+/bin/
+*.tmp
+*.swp
+*.swo
+*.orig
+*.bak
+*.rej
+coverage/
+*.exec
+*.hprof
+
+### Misc ###
+*.local
