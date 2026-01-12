@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Long> {
 
     @Query("SELECT e FROM ExchangeRate e " + "WHERE e.fromCurrency = :fromCurrency " + "AND e.toCurrency = :toCurrency "
-        + "ORDER BY e.updatedAt DESC " + "LIMIT 1")
+        + "ORDER BY e.createdAt DESC " + "LIMIT 1")
     Optional<ExchangeRate> findLatestRate(@Param("fromCurrency") Currency fromCurrency,
         @Param("toCurrency") Currency toCurrency);
 }

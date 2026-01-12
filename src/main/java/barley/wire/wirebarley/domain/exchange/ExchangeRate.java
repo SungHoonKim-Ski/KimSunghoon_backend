@@ -1,5 +1,6 @@
 package barley.wire.wirebarley.domain.exchange;
 
+import barley.wire.wirebarley.common.util.TimeUtil;
 import barley.wire.wirebarley.domain.account.Currency;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,13 +34,13 @@ public class ExchangeRate {
     @Column(nullable = false, precision = 19, scale = 6)
     private BigDecimal rate;
 
-    @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private LocalDateTime createdAt;
 
     public ExchangeRate(Currency fromCurrency, Currency toCurrency, BigDecimal rate) {
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.rate = rate;
+        this.createdAt = TimeUtil.nowDateTime();
     }
 }
