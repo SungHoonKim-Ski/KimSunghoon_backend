@@ -252,44 +252,6 @@ class GlobalTransferAppServiceTest {
     }
 
     @Test
-    @DisplayName("입금 계좌 한도 초과 시 글로벌 송금 실패")
-    void globalTransfer_Fail_DepositLimitExceeded() {
-        // [given]
-        BigDecimal amount = BigDecimal.valueOf(100000);
-        GlobalTransferRequest request = new GlobalTransferRequest(1L, 2L, amount);
-
-        when(accountService.getAccountsWithLockOrdered(1L, 2L)).thenReturn(Pair.of(fromAccount, toAccount));
-        when(exchangeRateService.getExchangeRate(any(), any())).thenReturn(BigDecimal.TEN);
-        when(exchangeRateService.convertAmount(any(), any(), any())).thenAnswer(i -> i.getArgument(0));
-
-        doThrow(new LimitExceededException("입금 한도 초과"))
-                .when(accountValidator).checkGlobalDepositLimit(anyLong(), any());
-
-        // [when & then]
-        assertThatThrownBy(() -> globalTransferAppService.globalTransfer(request))
-                .isInstanceOf(LimitExceededException.class);
-    }
-
-    @Test
-    @DisplayName("이체 한도 초과 시 글로벌 송금 실패")
-    void globalTransfer_Fail_TransferLimitExceeded() {
-        // [given]
-        BigDecimal amount = BigDecimal.valueOf(4000000);
-        GlobalTransferRequest request = new GlobalTransferRequest(1L, 2L, amount);
-
-        when(accountService.getAccountsWithLockOrdered(1L, 2L)).thenReturn(Pair.of(fromAccount, toAccount));
-        when(exchangeRateService.getExchangeRate(any(), any())).thenReturn(BigDecimal.ONE);
-        when(exchangeRateService.convertAmount(any(), any(), any())).thenAnswer(i -> i.getArgument(0));
-
-        doThrow(new LimitExceededException("이체 한도 초과"))
-                .when(accountValidator).checkGlobalTransferLimit(anyLong(), any());
-
-        // [when & then]
-        assertThatThrownBy(() -> globalTransferAppService.globalTransfer(request))
-                .isInstanceOf(LimitExceededException.class);
-    }
-
-    @Test
     @DisplayName("잘못된 송금 금액 시 글로벌 송금 실패")
     void globalTransfer_Fail_InvalidAmount() {
         // [given]

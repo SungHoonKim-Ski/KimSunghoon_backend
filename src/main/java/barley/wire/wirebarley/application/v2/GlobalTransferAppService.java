@@ -63,7 +63,7 @@ public class GlobalTransferAppService {
         BigDecimal totalAmountToWithdraw = MoneyUtils.add(amount, transferFee, fromAccount.getCurrency());
 
         // 6. 실행 가능 여부 검증 (잔액, 한도)
-        validateExecution(fromAccount, toAccount, amount, totalAmountToWithdraw, finalConvertedAmount);
+        validateExecution(fromAccount, amount, totalAmountToWithdraw);
 
         // 7. 계좌 잔액 업데이트 (출금/입금)
         executeTransfer(fromAccount, toAccount, totalAmountToWithdraw, finalConvertedAmount);
@@ -101,17 +101,13 @@ public class GlobalTransferAppService {
     }
 
     // 한도와 잔액을 검증합니다.
-    private void validateExecution(Account fromAccount, Account toAccount, BigDecimal amount,
-                                   BigDecimal totalAmountToWithdraw, BigDecimal finalConvertedAmount) {
+    private void validateExecution(Account fromAccount, BigDecimal amount, BigDecimal totalAmountToWithdraw) {
         // 잔액 확인 (출금 통화 기준)
         accountValidator.validateBalance(fromAccount, totalAmountToWithdraw, "수수료를 포함한 잔액이 부족합니다");
 
         // 출금 계좌 한도 확인 (이체 한도 + 출금 한도) - KRW 기준
         accountValidator.checkGlobalTransferLimit(fromAccount.getId(), amount);
         accountValidator.checkWithdrawLimit(fromAccount.getId(), totalAmountToWithdraw);
-
-        // 입금 계좌 한도 확인 (이체 한도 - 입금도 이체 한도를 공유한다고 가정) - KRW 기준
-        accountValidator.checkGlobalDepositLimit(toAccount.getId(), finalConvertedAmount);
     }
 
     // 실제 계좌의 잔액 변경

@@ -3,7 +3,6 @@ package barley.wire.wirebarley.common.validator;
 import static barley.wire.wirebarley.common.constants.TransferConstants.DAILY_TRANSFER_LIMIT;
 import static barley.wire.wirebarley.common.constants.TransferConstants.DAILY_WITHDRAW_LIMIT;
 
-import barley.wire.wirebarley.common.constants.TransferConstants;
 import barley.wire.wirebarley.domain.account.Account;
 import barley.wire.wirebarley.domain.transaction.TransactionType;
 import barley.wire.wirebarley.common.exception.InvalidAmountException;
@@ -89,24 +88,6 @@ public class AccountValidator {
 
         if (totalInKRW.compareTo(DAILY_TRANSFER_LIMIT) > 0) {
             throw new LimitExceededException("일일 해외 송금 한도를 초과했습니다 (한도: 300만원)");
-        }
-    }
-
-    public void checkGlobalDepositLimit(Long accountId, BigDecimal amount) {
-        Account account = accountService.getAccount(accountId);
-        BigDecimal dailyDeposited = transactionRepository.sumAmountByAccountIdAndTypeAndCreatedAtAfter(accountId,
-                TransactionType.TRANSFER_IN, TimeUtil.atStartOfDay());
-
-        BigDecimal totalInAccountCurrency = dailyDeposited.add(amount);
-        BigDecimal totalInKRW = totalInAccountCurrency;
-
-        if (account.getCurrency() != Currency.KRW) {
-            totalInKRW = exchangeRateService.convertAmount(totalInAccountCurrency,
-                    account.getCurrency(), Currency.KRW);
-        }
-
-        if (totalInKRW.compareTo(DAILY_TRANSFER_LIMIT) > 0) {
-            throw new LimitExceededException("일일 해외 입금(이체) 한도를 초과했습니다 (한도: 300만원)");
         }
     }
 
