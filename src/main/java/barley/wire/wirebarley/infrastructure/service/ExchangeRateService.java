@@ -1,13 +1,13 @@
 package barley.wire.wirebarley.infrastructure.service;
 
 import barley.wire.wirebarley.infrastructure.client.ExchangeRateApi;
-import barley.wire.wirebarley.infrastructure.client.ExchangeRateClient;
-import barley.wire.wirebarley.infrastructure.client.ExchangeRateFallbackClient;
+
 import barley.wire.wirebarley.domain.account.Currency;
 import barley.wire.wirebarley.domain.exchange.ExchangeRate;
 import barley.wire.wirebarley.presentation.dto.response.ExchangeRateApiResponse;
 import barley.wire.wirebarley.infrastructure.repository.ExchangeRateRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ExchangeRateService {
 
     private final ExchangeRateRepository exchangeRateRepository;
-    private final ExchangeRateClient exchangeRateClient;
-    private final ExchangeRateFallbackClient exchangeRateFallbackClient;
+    private final List<ExchangeRateApi> exchangeRateApis;
 
     /** 환율 조회 (캐시 적용 - 10분) 캐시 미스 시 외부 API 호출 후 DB 저장 */
     @Cacheable(value = "exchangeRates", key = "#fromCurrency + '_' + #toCurrency")
@@ -44,34 +43,24 @@ public class ExchangeRateService {
      * 외부 API에서 환율 조회 후 DB 저장 폴백 전략: Primary API → Secondary API → DB Cache → 1.0
      */
     private BigDecimal fetchAndSaveExchangeRate(Currency fromCurrency, Currency toCurrency) {
-        // 1차 시도: Primary API
-        try {
-            log.info("Calling primary API for exchange rate: {} -> {}", fromCurrency, toCurrency);
-            BigDecimal rate = fetchFromApi(exchangeRateClient, fromCurrency, toCurrency);
-            if (rate != null) {
-                saveExchangeRate(fromCurrency, toCurrency, rate);
-                return rate;
+        for (ExchangeRateApi api : exchangeRateApis) {
+            try {
+                log.info("Calling API {} for exchange rate: {} -> {}", api.getClass().getSimpleName(), fromCurrency,
+                        toCurrency);
+                BigDecimal rate = fetchFromApi(api, fromCurrency, toCurrency);
+                if (rate != null) {
+                    saveExchangeRate(fromCurrency, toCurrency, rate);
+                    return rate;
+                }
+            } catch (Exception e) {
+                log.warn("API {} failed: {}", api.getClass().getSimpleName(), e.getMessage());
             }
-        } catch (Exception e) {
-            log.warn("Primary API failed: {}", e.getMessage());
-        }
-
-        // 2차 시도: Fallback API
-        try {
-            log.info("Calling fallback API for exchange rate: {} -> {}", fromCurrency, toCurrency);
-            BigDecimal rate = fetchFromApi(exchangeRateFallbackClient, fromCurrency, toCurrency);
-            if (rate != null) {
-                saveExchangeRate(fromCurrency, toCurrency, rate);
-                return rate;
-            }
-        } catch (Exception e) {
-            log.warn("Fallback API failed: {}", e.getMessage());
         }
 
         log.warn("All external APIs failed, using DB cache");
         return exchangeRateRepository.findLatestRate(fromCurrency, toCurrency)
                 .map(ExchangeRate::getRate)
-                .orElse(BigDecimal.ONE); // 4차: 최후의 수단
+                .orElse(BigDecimal.ONE); // 최후의 수단
     }
 
     private BigDecimal fetchFromApi(ExchangeRateApi client, Currency fromCurrency, Currency toCurrency) {
