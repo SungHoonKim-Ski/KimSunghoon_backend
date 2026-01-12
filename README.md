@@ -384,6 +384,10 @@ docker-compose down -v --rmi all
 - **이체 한도 초과 시나리오**
     - **상황**: 일 3,000,000원 한도 초과 (예: 3,000,001원 송금 시도)
   ```bash
+  curl -X POST http://localhost:6060/api/v1/accounts/2/deposit \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 3000000}'
+  
   curl -X POST http://localhost:6060/api/v2/global-transfers \
     -H "Content-Type: application/json" \
     -d '{"fromAccountId": 2, "toAccountId": 4, "amount": 3000001}'
@@ -410,7 +414,47 @@ docker-compose down -v --rmi all
   ```bash
   curl -X GET "http://localhost:6060/api/v2/global-accounts/4/transactions?page=0&size=10"
   ```
-- **응답**: v1과 동일하게 최신순 정렬 및 페이지네이션된 JSON 반환
+- **응답**
+  ```json
+  {
+    "items": [
+      {
+        "id": 8,
+        "type": "TRANSFER_IN",
+        "amount": 68.2500,
+        "currency": "USD",
+        "fee": 0.0000,
+        "balanceSnapshot": 968.8000,
+        "relatedAccountId": 2,
+        "createdAt": "2026-01-12T22:24:34"
+      },
+      {
+        "id": 6,
+        "type": "WITHDRAW",
+        "amount": 100.0000,
+        "currency": "USD",
+        "fee": 0.0000,
+        "balanceSnapshot": 900.5500,
+        "relatedAccountId": null,
+        "createdAt": "2026-01-12T22:24:22"
+      },
+      {
+        "id": 5,
+        "type": "DEPOSIT",
+        "amount": 1000.5500,
+        "currency": "USD",
+        "fee": 0.0000,
+        "balanceSnapshot": 1000.5500,
+        "relatedAccountId": null,
+        "createdAt": "2026-01-12T22:24:14"
+      }
+    ],
+    "page": 0,
+    "size": 10,
+    "totalElements": 3,
+    "totalPages": 1
+  }
+  ```
 
 ---
 
@@ -427,6 +471,18 @@ docker-compose down -v --rmi all
   ```
 - **응답**: 정상 송금 결과 반환
 
+- **잔액 조회 (최초 송금 후)**
+
+  보낸 이(1번: KRW) 잔액 확인
+  ```bash
+  curl -X GET http://localhost:6060/api/v1/accounts/1/balance
+  ```
+
+  받는 이(4번: USD) 잔액 확인
+  ```bash
+  curl -X GET http://localhost:6060/api/v2/global-accounts/4/balance
+  ```
+
 #### 2. 멱등 송금 (중복 요청)
 
 - **동일 키 재전송**
@@ -437,6 +493,19 @@ docker-compose down -v --rmi all
     -d '{"fromAccountId": 1, "toAccountId": 4, "amount": 10000}'
   ```
 - **응답**: 실제 송금 로직을 타지 않고, **이전 응답 값을 즉시 반환**
+
+- **잔액 조회 (중복 요청 후 재확인)**
+  - 잔액이 **최초 송금 후와 동일**함을 확인하여 중복 출금이 발생하지 않았음을 검증합니다.
+
+  보낸 이(1번) 잔액 확인
+  ```bash
+  curl -X GET http://localhost:6060/api/v1/accounts/1/balance
+  ```
+
+  받는 이(4번) 잔액 확인
+  ```bash
+  curl -X GET http://localhost:6060/api/v2/global-accounts/4/balance
+  ```
 
 #### 3. 멱등성 충돌 (데이터 불일치)
 
@@ -486,7 +555,7 @@ docker-compose down -v --rmi all
 
 ---
 
-## 📊 데이터베이스
+## 데이터베이스
 
 ### Flyway 마이그레이션
 
@@ -509,7 +578,7 @@ V3__add_idempotency_records.sql  # 멱등성 레코드 테이블 추가
 
 ---
 
-## 🏗 프로젝트 구조
+##  프로젝트 구조
 
 ```
 wirebarley/
@@ -523,7 +592,7 @@ wirebarley/
 
 ---
 
-## 🛠 외부 라이브러리 및 오픈소스 사용 목적
+## 외부 라이브러리 및 오픈소스 사용 목적
 
 - **Spring Cloud OpenFeign**: 외부 환율 API 간의 선언적 HTTP 통신 구축
 - **Flyway**: DB 스키마 형상 관리 및 버전 관리
@@ -533,10 +602,9 @@ wirebarley/
 
 ---
 
-## 🧪 테스트 실행
+##  테스트 실행
 
 ```bash
 ./gradlew test
 ```
 
-- 60개 이상의 시나리오 테스트(V1~V3) 전면 검증 완료.
