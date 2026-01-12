@@ -33,7 +33,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Order(Ordered.LOWEST_PRECEDENCE)
 public class IdempotencyAspect {
 
     private static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
