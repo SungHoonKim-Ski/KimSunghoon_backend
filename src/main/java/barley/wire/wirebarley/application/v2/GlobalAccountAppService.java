@@ -75,11 +75,13 @@ public class GlobalAccountAppService {
 
     public BalanceResponse getBalance(Long accountId) {
         Account account = accountService.getAccount(accountId);
+
         return BalanceResponse.from(account);
     }
 
     public AccountResponse getAccount(Long accountId) {
         Account account = accountService.getAccount(accountId);
+
         return AccountResponse.from(account);
     }
 
