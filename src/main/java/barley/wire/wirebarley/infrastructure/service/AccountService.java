@@ -29,7 +29,7 @@ public class AccountService {
     }
 
     public Account getAccount(Long accountId) {
-        return accountRepository.findByIdNotDeleted(accountId)
+        return accountRepository.findById(accountId)
             .orElseThrow(() -> new AccountNotFoundException("계좌번호를 찾을 수 없습니다: " + accountId));
     }
 

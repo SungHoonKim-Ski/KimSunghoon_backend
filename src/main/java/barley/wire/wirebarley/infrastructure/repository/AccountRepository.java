@@ -15,13 +15,10 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     boolean existsByAccountNumber(String accountNumber);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Account a WHERE a.id = :id AND a.deletedAt IS NULL")
+    @Query("SELECT a FROM Account a WHERE a.id = :id")
     Optional<Account> findByIdWithLock(@Param("id") Long id);
 
-    @Query("SELECT a FROM Account a WHERE a.id = :id AND a.deletedAt IS NULL")
-    Optional<Account> findByIdNotDeleted(@Param("id") Long id);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Account a WHERE a.id IN :ids AND a.deletedAt IS NULL ORDER BY a.id")
+    @Query("SELECT a FROM Account a WHERE a.id IN :ids ORDER BY a.id")
     List<Account> findByIdsWithLockOrdered(@Param("ids") List<Long> ids);
 }
