@@ -124,7 +124,7 @@ class AccountAppServiceTest {
         // 출금 후 잔액(10만 - 1만 = 9만) 확인
         assertThat(response.balance()).isEqualByComparingTo(BigDecimal.valueOf(90000));
 
-        verify(accountValidator).checkWithdrawLimit(1L, amount);
+        verify(accountValidator).checkWithdrawLimit(testAccount, amount);
         verify(accountValidator).validateBalance(eq(testAccount), eq(amount), anyString());
         verify(eventPublisher).publishEvent(any(TransactionEvent.class));
     }
@@ -178,7 +178,7 @@ class AccountAppServiceTest {
         BigDecimal amount = BigDecimal.valueOf(1000001);
         when(accountService.getAccountWithLock(1L)).thenReturn(testAccount);
         doThrow(new LimitExceededException("일일 출금 한도를 초과했습니다"))
-                .when(accountValidator).checkWithdrawLimit(1L, amount);
+                .when(accountValidator).checkWithdrawLimit(testAccount, amount);
 
         // [when & then]
         assertThatThrownBy(() -> accountAppService.withdraw(1L, amount))

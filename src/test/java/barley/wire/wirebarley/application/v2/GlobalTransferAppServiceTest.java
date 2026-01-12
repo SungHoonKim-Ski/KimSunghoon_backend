@@ -345,7 +345,7 @@ class GlobalTransferAppServiceTest {
 
         // Validator에서 환산된 총 출금액이 아니라 전달된 원본 금액(707.00)으로 호출되는지 검증
         doThrow(new LimitExceededException("출금 한도 초과"))
-                .when(accountValidator).checkWithdrawLimit(eq(1L), eq(totalWithdrawUSD));
+                .when(accountValidator).checkWithdrawLimit(eq(fromAccount), eq(totalWithdrawUSD));
 
         // [when & then]
         assertThatThrownBy(() -> globalTransferAppService.globalTransfer(request))

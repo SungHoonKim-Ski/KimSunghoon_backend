@@ -53,12 +53,11 @@ class AccountValidatorTest {
     @Test
     @DisplayName("원화 계좌 출금 한도 초과 테스트 (100만원 초과)")
     void checkWithdrawLimit_KRW_Exceeded() {
-        when(accountService.getAccount(1L)).thenReturn(krwAccount);
         when(transactionRepository.sumAmountByAccountIdAndTypeAndCreatedAtAfter(eq(1L),
                 eq(TransactionType.WITHDRAW), any(LocalDateTime.class)))
                 .thenReturn(new BigDecimal("500000"));
 
-        assertThatThrownBy(() -> accountValidator.checkWithdrawLimit(1L, new BigDecimal("500001")))
+        assertThatThrownBy(() -> accountValidator.checkWithdrawLimit(krwAccount, new BigDecimal("500001")))
                 .isInstanceOf(LimitExceededException.class)
                 .hasMessageContaining("일일 출금 한도를 초과했습니다 (한도: 100만원)");
     }
@@ -66,7 +65,6 @@ class AccountValidatorTest {
     @Test
     @DisplayName("외화(USD) 계좌 출금 한도 초과 테스트 (환산 시 100만원 초과)")
     void checkWithdrawLimit_USD_Exceeded() {
-        when(accountService.getAccount(2L)).thenReturn(usdAccount);
         // 오늘 이미 200 USD 출금 (환율 1400 가정 시 28만원)
         when(transactionRepository.sumAmountByAccountIdAndTypeAndCreatedAtAfter(eq(2L),
                 eq(TransactionType.WITHDRAW), any(LocalDateTime.class)))
@@ -80,7 +78,7 @@ class AccountValidatorTest {
         when(exchangeRateService.convertAmount(totalUSD, Currency.USD, Currency.KRW))
                 .thenReturn(totalKRW);
 
-        assertThatThrownBy(() -> accountValidator.checkWithdrawLimit(2L, amount))
+        assertThatThrownBy(() -> accountValidator.checkWithdrawLimit(usdAccount, amount))
                 .isInstanceOf(LimitExceededException.class)
                 .hasMessageContaining("일일 출금 한도를 초과했습니다 (한도: 100만원)");
     }
