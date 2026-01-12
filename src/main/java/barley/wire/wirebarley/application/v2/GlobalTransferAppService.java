@@ -107,19 +107,19 @@ public class GlobalTransferAppService {
 
         // 출금 계좌 한도 확인 (이체 한도 + 출금 한도) - KRW 기준
         accountValidator.checkGlobalTransferLimit(fromAccount.getId(), amount);
-        accountValidator.checkWithdrawLimit(fromAccount.getId(), totalAmountToWithdraw);
+        accountValidator.checkWithdrawLimit(fromAccount, totalAmountToWithdraw);
     }
 
     // 실제 계좌의 잔액 변경
     private void executeTransfer(Account fromAccount, Account toAccount, BigDecimal withdrawAmount,
-                                 BigDecimal depositAmount) {
+            BigDecimal depositAmount) {
         fromAccount.withdraw(withdrawAmount);
         toAccount.deposit(depositAmount);
     }
 
     // 트랜잭션 이벤트 발행
     private void publishTransferEvents(Account fromAccount, Account toAccount, BigDecimal amount,
-                                       BigDecimal finalConvertedAmount, BigDecimal transferFee) {
+            BigDecimal finalConvertedAmount, BigDecimal transferFee) {
         TransactionEvent outEvent = TransactionEvent.builder()
                 .accountId(fromAccount.getId())
                 .type(TransactionType.TRANSFER_OUT)

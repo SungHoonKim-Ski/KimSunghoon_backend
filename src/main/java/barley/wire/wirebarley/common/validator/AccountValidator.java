@@ -34,11 +34,10 @@ public class AccountValidator {
         }
     }
 
-    public void checkWithdrawLimit(Long accountId, BigDecimal amount) {
-        Account account = accountService.getAccount(accountId);
+    public void checkWithdrawLimit(Account account, BigDecimal amount) {
 
         // 오늘 이미 출금한 금액 합산 (해당 계좌의 통화 기준)
-        BigDecimal dailyWithdrawn = transactionRepository.sumAmountByAccountIdAndTypeAndCreatedAtAfter(accountId,
+        BigDecimal dailyWithdrawn = transactionRepository.sumAmountByAccountIdAndTypeAndCreatedAtAfter(account.getId(),
                 TransactionType.WITHDRAW, TimeUtil.atStartOfDay());
 
         // 합계 및 현재 요청 금액을 KRW로 환산하여 한도 체크

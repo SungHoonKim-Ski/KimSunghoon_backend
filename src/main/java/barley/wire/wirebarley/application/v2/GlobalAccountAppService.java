@@ -64,7 +64,7 @@ public class GlobalAccountAppService {
         accountValidator.validateAmount(amount);
         Account account = accountService.getAccountWithLock(accountId);
 
-        accountValidator.checkWithdrawLimit(accountId, amount);
+        accountValidator.checkWithdrawLimit(account, amount);
         accountValidator.validateBalance(account, amount, "잔액이 부족합니다");
 
         account.withdraw(amount);
