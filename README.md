@@ -155,14 +155,21 @@ docker-compose down -v --rmi all
   ```
 
 - **이체 결과 확인 (잔액 조회)**
-  ```bash
-  # 보낸 이(2번) 잔액 확인
+  - 보낸 이(2번) 잔액 확인
+- ```bash
   curl -X GET http://localhost:6060/api/v1/accounts/2/balance
-  # 응답: {"accountId":2,"balance":399000.0,"currency":"KRW"}
-
-  # 받는 이(1번) 잔액 확인
+  ```
+  - 응답
+  ```json
+  {"accountId":2,"balance":399000.0,"currency":"KRW"}
+  ``` 
+  - 받는 이(1번) 잔액 확인
+  ```bash
   curl -X GET http://localhost:6060/api/v1/accounts/1/balance
-  # 응답: {"accountId":1,"balance":100000.0,"currency":"KRW"}
+  ```
+  - 응답
+  ```json
+  {"accountId":1,"balance":100000.0,"currency":"KRW"}
   ```
 
 - **이체 (한도 초과 실패)**
@@ -237,8 +244,8 @@ docker-compose down -v --rmi all
   ```json
   {
     "id": 1,
-    "accountNumber": "111-200-300",
-    "ownerName": "김성훈",
+    "accountNumber": "111-222-333",
+    "ownerName": "김성수",
     "balance": 100000.0,
     "currency": "KRW"
   }
@@ -246,13 +253,13 @@ docker-compose down -v --rmi all
 
 - **잔액 조회** (`GET /api/v1/accounts/{accountId}/balance`)
   ```bash
-  curl -X GET http://localhost:6060/api/v1/accounts/1/balance
+  curl -X GET http://localhost:6060/api/v1/accounts/2/balance
   ```
 - **응답**
   ```json
   {
-    "accountId": 1,
-    "balance": 100000.0,
+    "accountId": 2,
+    "balance": 399000.0,
     "currency": "KRW"
   }
   ```
@@ -539,7 +546,7 @@ docker-compose down -v --rmi all
 - **Primary API**: ExchangeRate-API (무료 티어 활용)
 - **Fallback API**: 보조 환율 API 연동
 - **캐싱**: DB 캐싱으로 외부 API 장애 시에도 서비스 안정성 확보 (10분)
-- 우선순위: Primary → Fallback → DB Cache → 1.0 (기본값)
+- 우선순위: Primary → Fallback → DB Cache
 
 ### 3. 동시성 제어
 
@@ -550,7 +557,7 @@ docker-compose down -v --rmi all
 
 ### 4. 수수료 정책
 
-- **올림 처리**: 회사에게 유리하도록 수수료 계산 시 소수점 올림 (`RoundingMode.UP`)
+- **올림 처리**: 수수료 계산 시 소수점 올림 처리 (`RoundingMode.UP`)
 - **통화별 소수점**: KRW (0자리), USD/EUR/JPY (2자리) 등 통화 규격 준수
 
 ---
